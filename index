@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Narcostics R US</title>
+  <style>
+    body { font-family: "Trebuchet MS", sans-serif; background: #090a08; color: #fff; margin: 0; padding: 24px; }
+    .store-shell { max-width: 1080px; margin: 0 auto; }
+    .store-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 8px 0 22px; border-bottom: 1px solid #383a34; margin-bottom: 24px; }
+    .store-header h1 { margin: 0; font-size: 2rem; letter-spacing: 0; }
+    .store-header p { margin: 0; color: #b6b9b0; }
+    .brand-weed { color: #ff762e; }
+    .brand-hub { color: #fff; }
+    .cart { margin: 0 auto 32px; padding: 16px 18px; border: 1px solid #41433b; background: #11130f; }
+    .cart h2 { margin: 0 0 8px; font-size: 1.15rem; }
+    .cart-items { display: grid; gap: 10px; margin: 0 0 12px; padding: 0; list-style: none; }
+    .cart-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .cart-row-name { line-height: 1.5; }
+    .quantity-controls { display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .quantity-button { width: 34px; height: 34px; border: 1px solid #61645a; background: #20231d; color: #fff; font-size: 1.2rem; cursor: pointer; }
+    .quantity-button:hover { border-color: #ff762e; color: #ff9a61; }
+    .cart-total { margin: 0; font-weight: bold; }
+    .cart-link { display: inline-block; margin-top: 10px; color: #ff9a61; }
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; max-width: 860px; margin: 0 auto; }
+    .product-card { background: #11130f; color: #fff; padding: 16px; border: 1px solid #41433b; border-radius: 8px; }
+    .product-card h3 { margin-bottom: 8px; }
+    .product-image { display: block; width: 100%; height: 220px; object-fit: contain; background: #fff; border-radius: 5px; }
+    .strain-label { min-height: 1.4em; font-weight: bold; }
+    .indica { color: #b57aff; }
+    .hybrid-green { color: #61c96b; }
+    .sativa { color: #287a35; }
+    .product-description { line-height: 1.5; }
+    .intensity { color: #ffe34d; }
+    .btn { background: #ff762e; color: #111; border: none; padding: 11px; width: 100%; border-radius: 4px; font-weight: bold; cursor: pointer; }
+    .btn:hover { background: #ff9a61; }
+    .cart-dialog { width: min(620px, calc(100% - 36px)); max-height: 80vh; overflow: auto; padding: 22px; border: 1px solid #626458; background: #11130f; color: #fff; }
+    .cart-dialog::backdrop { background: rgba(0, 0, 0, 0.78); }
+    .dialog-header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 18px; }
+    .dialog-header h2 { margin: 0; }
+    .close-button { border: 1px solid #61645a; background: transparent; color: white; padding: 8px 12px; cursor: pointer; }
+    .age-gate { min-height: calc(100vh - 48px); display: grid; place-items: center; }
+    .age-panel { width: min(440px, 100%); padding: 30px; border: 1px solid #41433b; background: #11130f; text-align: center; }
+    .age-panel h1 { margin-top: 0; }
+    .age-actions { display: flex; justify-content: center; gap: 12px; margin-top: 24px; }
+    .age-actions button { min-width: 120px; padding: 12px; border: 1px solid #ff762e; background: #ff762e; color: #111; font-weight: bold; cursor: pointer; }
+    .age-actions button:last-child { background: transparent; color: #fff; border-color: #666; }
+    @media (max-width: 600px) {
+      body { padding: 16px; }
+      .store-header { align-items: flex-start; flex-direction: column; }
+      .store-header p { font-size: 0.95rem; }
+      .product-grid { grid-template-columns: 1fr; }
+      .age-actions { flex-direction: column; }
+      .age-actions button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <main class="age-gate" id="age-gate" role="dialog" aria-modal="true" aria-labelledby="age-title">
+    <section class="age-panel">
+      <div id="age-prompt">
+        <h1 id="age-title">Age Check</h1>
+        <p>Are you older than 18?</p>
+        <div class="age-actions">
+          <button type="button" onclick="enterStore()">Yes, I'm over 18</button>
+          <button type="button" onclick="denyEntry()">No</button>
+        </div>
+      </div>
+      <p id="age-denied" role="status" hidden>Please leave this site. You must be over 18 to enter.</p>
+    </section>
+  </main>
+
+  <div class="store-shell" id="store" hidden>
+    <header class="store-header">
+      <h1><span class="brand-weed">WEED</span> <span class="brand-hub">HUB</span></h1>
+      <p>Featured flower and current prices</p>
+    </header>
+
+    <section class="cart" aria-labelledby="cart-title" aria-live="polite">
+      <h2 id="cart-title">Your Cart</h2>
+      <ul class="cart-items" id="cart-items"><li>Your cart is empty.</li></ul>
+      <p class="cart-total">Total: <span id="cart-total">R 0.00</span></p>
+      <a class="cart-link" href="#cart-dialog" onclick="openCart(event)">View full cart</a>
+    </section>
+
+    <section class="product-grid" id="products" aria-label="Products">
+      <article class="product-card">
+        <img class="product-image" src="OG.jpg" alt="OG Kush cannabis flower">
+        <h3>OG Kush</h3>
+        <p>R 250.00</p>
+        <p class="strain-label"><span class="indica">INDICA</span> <span class="hybrid-green">DOMINANTS</span> <span class="indica">HYBRID</span></p>
+        <p class="product-description">THC: 20-25%<br>INTENSITY: <span class="intensity">MEDIUM</span></p>
+        <button class="btn" type="button" onclick="addToCart('OG Kush', 250)">Add to Cart</button>
+      </article>
+      <article class="product-card">
+        <img class="product-image" src="MANGO%20HAZE.jpg" alt="Mango Haze cannabis flower">
+        <h3>Mango Haze</h3>
+        <p>R 300.00</p>
+        <p class="strain-label sativa">SATIVA DOMINANT HYBRID</p>
+        <p class="product-description">THC: 20-25%<br>INTENSITY: <span class="intensity">MEDIUM</span></p>
+        <button class="btn" type="button" onclick="addToCart('Mango Haze', 300)">Add to Cart</button>
+      </article>
+    </section>
+  </div>
+
+  <dialog class="cart-dialog" id="cart-dialog" aria-labelledby="full-cart-title">
+    <div class="dialog-header">
+      <h2 id="full-cart-title">Full Cart</h2>
+      <button class="close-button" type="button" onclick="closeCart()">Close</button>
+    </div>
+    <ul class="cart-items" id="full-cart-items"><li>Your cart is empty.</li></ul>
+    <p class="cart-total">Total: <span id="full-cart-total">R 0.00</span></p>
+  </dialog>
+
+  <script>
+    const cart = new Map();
+
+    function enterStore() {
+      document.getElementById('age-gate').hidden = true;
+      document.getElementById('store').hidden = false;
+    }
+
+    function denyEntry() {
+      document.getElementById('age-prompt').hidden = true;
+      document.getElementById('age-denied').hidden = false;
+    }
+
+    function addToCart(itemName, price) {
+      const item = cart.get(itemName) || { price, quantity: 0 };
+      item.quantity += 1;
+      cart.set(itemName, item);
+      renderCart();
+    }
+
+    function changeQuantity(itemName, amount) {
+      const item = cart.get(itemName);
+      if (!item) return;
+
+      item.quantity += amount;
+      if (item.quantity <= 0) {
+        cart.delete(itemName);
+      }
+      renderCart();
+    }
+
+    function openCart(event) {
+      event.preventDefault();
+      renderCart();
+      document.getElementById('cart-dialog').showModal();
+    }
+
+    function closeCart() {
+      document.getElementById('cart-dialog').close();
+    }
+
+    function renderCart() {
+      const cartLists = [
+        document.getElementById('cart-items'),
+        document.getElementById('full-cart-items')
+      ];
+      const cartTotals = [
+        document.getElementById('cart-total'),
+        document.getElementById('full-cart-total')
+      ];
+
+      let total = 0;
+      for (const cartList of cartLists) {
+        cartList.replaceChildren();
+        if (cart.size === 0) {
+          const emptyItem = document.createElement('li');
+          emptyItem.textContent = 'Your cart is empty.';
+          cartList.append(emptyItem);
+        } else {
+          for (const [itemName, item] of cart) {
+            const listItem = document.createElement('li');
+            listItem.className = 'cart-row';
+            const itemDetails = document.createElement('span');
+            itemDetails.className = 'cart-row-name';
+            itemDetails.textContent = `${itemName} - R ${(item.price * item.quantity).toFixed(2)}`;
+            const controls = document.createElement('span');
+            controls.className = 'quantity-controls';
+            const minusButton = document.createElement('button');
+            minusButton.className = 'quantity-button';
+            minusButton.type = 'button';
+            minusButton.textContent = '-';
+            minusButton.setAttribute('aria-label', `Remove one ${itemName}`);
+            minusButton.addEventListener('click', () => changeQuantity(itemName, -1));
+            const quantity = document.createElement('span');
+            quantity.textContent = String(item.quantity);
+            const plusButton = document.createElement('button');
+            plusButton.className = 'quantity-button';
+            plusButton.type = 'button';
+            plusButton.textContent = '+';
+            plusButton.setAttribute('aria-label', `Add one ${itemName}`);
+            plusButton.addEventListener('click', () => changeQuantity(itemName, 1));
+            controls.append(minusButton, quantity, plusButton);
+            listItem.append(itemDetails, controls);
+            cartList.append(listItem);
+          }
+        }
+      }
+
+      for (const item of cart.values()) {
+        total += item.price * item.quantity;
+      }
+      for (const cartTotal of cartTotals) {
+        cartTotal.textContent = `R ${total.toFixed(2)}`;
+      }
+    }
+  </script>
+
+</body>
+</html>
